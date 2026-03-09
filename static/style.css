@@ -1,0 +1,186 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    -webkit-tap-highlight-color: transparent; /* Remove blue highlight on iOS */
+}
+
+body {
+    background-color: #f5f5f5;
+    color: #111;
+    overflow: hidden; /* Prevent pull-to-refresh on mobile */
+}
+
+/* Tabs */
+.tab-content {
+    display: none;
+    height: calc(100vh - 65px); /* Subtract bottom nav height */
+    overflow-y: auto;
+    width: 100vw;
+}
+.tab-content.active {
+    display: block;
+}
+
+/* Map Container */
+#map {
+    height: 100%;
+    width: 100%;
+    z-index: 0;
+}
+
+/* Bottom Sheet Overlay */
+.bottom-sheet {
+    position: absolute;
+    bottom: 65px; /* Above nav tab */
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+    z-index: 1000;
+    transform: translateY(0%); /* Controlled by anime.js */
+}
+.drag-handle {
+    width: 40px;
+    height: 5px;
+    background: #ddd;
+    border-radius: 5px;
+    margin: 0 auto 15px auto;
+}
+
+/* Floating Action Button */
+.fab {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    z-index: 1000;
+    font-size: 20px;
+    color: #111;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Buttons */
+.btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-primary {
+    background: #000;
+    color: #fff;
+}
+.btn-danger {
+    background: #e22a2a;
+    color: #fff;
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 65px;
+    background: #fff;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    z-index: 2000;
+}
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #888;
+    font-size: 12px;
+    cursor: pointer;
+    width: 30%;
+}
+.nav-item i {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+.nav-item.active {
+    color: #000;
+}
+
+/* Screen Headers (Non-Map Tabs) */
+.screen-header {
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* Activity & Profile Lists */
+.list-container {
+    padding: 10px 20px;
+}
+.list-item {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+.list-icon {
+    font-size: 24px;
+    width: 40px;
+    color: #555;
+}
+.list-text {
+    display: flex;
+    flex-direction: column;
+}
+.text-sm {
+    font-size: 12px;
+    color: #777;
+    margin-top: 4px;
+}
+.profile-header {
+    text-align: center;
+    padding: 30px;
+}
+.avatar {
+    width: 80px;
+    height: 80px;
+    background: #000;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 15px auto;
+}
+
+/* Custom Marker CSS injected by Leaflet DivIcon */
+.custom-marker {
+    color: white;
+    border: 2px solid white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    font-size: 14px;
+    cursor: pointer;
+}

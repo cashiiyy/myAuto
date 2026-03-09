@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="/manifest.json">
+    <title>myAuto</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- Tab 1: Map View -->
+    <div id="tab-map" class="tab-content active">
+        <div id="map"></div>
+        
+        <!-- Interactive Overlay Card (Bottom Sheet) -->
+        <div id="bottom-sheet" class="bottom-sheet">
+            <div class="drag-handle"></div>
+            <h2 id="sheet-title">Namma Auto</h2>
+            <p id="sheet-desc">Select an auto or passenger on the map to see details.</p>
+            
+            <div id="action-buttons" style="display: none; margin-top: 15px;">
+                <button class="btn btn-primary interactive-btn" id="call-btn"><i class="fas fa-phone"></i> Call Driver</button>
+                <button class="btn btn-danger interactive-btn" style="margin-top: 10px;"><i class="fas fa-exclamation-triangle"></i> SOS Alert</button>
+            </div>
+        </div>
+        
+        <!-- Live Sync FAB -->
+        <button id="sync-fab" class="fab interactive-btn"><i class="fas fa-sync-alt"></i></button>
+    </div>
+
+    <!-- Tab 2: Activity (Extra Feature) -->
+    <div id="tab-activity" class="tab-content">
+        <div class="screen-header">
+            <h2>Recent Activity</h2>
+        </div>
+        <div class="list-container">
+            <div class="list-item interactive-card">
+                <i class="fas fa-car list-icon"></i>
+                <div class="list-text">
+                    <strong>Ride to MG Road</strong>
+                    <span class="text-sm">Yesterday, 14:30 • ₹120</span>
+                </div>
+            </div>
+            <div class="list-item interactive-card">
+                <i class="fas fa-car list-icon"></i>
+                <div class="list-text">
+                    <strong>Ride to Indiranagar</strong>
+                    <span class="text-sm">Mar 5, 09:15 • ₹85</span>
+                </div>
+            </div>
+            <div class="list-item interactive-card">
+                <i class="fas fa-times-circle list-icon" style="color:red"></i>
+                <div class="list-text">
+                    <strong>Cancelled Ride</strong>
+                    <span class="text-sm">Mar 4, 18:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 3: Profile (Extra Feature) -->
+    <div id="tab-profile" class="tab-content">
+        <div class="screen-header">
+            <h2>Profile Settings</h2>
+        </div>
+        <div class="profile-header">
+            <div class="avatar"><i class="fas fa-user"></i></div>
+            <h3>User Profile</h3>
+            <p>Passenger Mode</p>
+        </div>
+        <div class="list-container" style="margin-top:20px;">
+            <div class="list-item interactive-card">
+                <i class="fas fa-shield-alt list-icon"></i>
+                <div class="list-text"><strong>Safety Contacts</strong></div>
+            </div>
+            <div class="list-item interactive-card" id="driver-toggle-btn">
+                <i class="fas fa-exchange-alt list-icon"></i>
+                <div class="list-text"><strong>Switch to Driver Mode</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" data-target="tab-map">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Map</span>
+        </div>
+        <div class="nav-item" data-target="tab-activity">
+            <i class="fas fa-receipt"></i>
+            <span>Activity</span>
+        </div>
+        <div class="nav-item" data-target="tab-profile">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </nav>
+
+    <!-- Dependencies -->
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <!-- Anime.js for Interactive Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="/static/app.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js');
+        });
+      }
+    </script>
+</body>
+</html>
