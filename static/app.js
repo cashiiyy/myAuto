@@ -219,8 +219,117 @@ document.querySelectorAll('.nav-item').forEach(item => {
     });
 });
 
-// Initialize
-document.getElementById('sync-fab').addEventListener('click', syncData);
-startRealGPSTracking();
-syncData();
-setInterval(syncData, 5000);
+// --- Auth & Splash Logic ---
+let authMethod = '';
+
+function startApp() {
+    // Check if logged in
+    const storedRole = localStorage.getItem('myAuto_role');
+    if (storedRole) {
+        currentMode = storedRole;
+        document.getElementById('mode-text').innerText = currentMode + " Mode";
+        document.getElementById('main-app').style.display = 'block';
+        if(map) map.invalidateSize();
+        startRealGPSTracking();
+        syncData();
+    } else {
+        // Show Auth Screen
+        document.getElementById('auth-screen').style.display = 'flex';
+    }
+}
+
+// Splash Screen Entrance
+window.addEventListener('load', () => {
+    anime.timeline({
+        complete: () => {
+            document.getElementById('splash-screen').style.display = 'none';
+            startApp();
+        }
+    })
+    .add({ targets: '#splash-logo', scale: [0, 1.2], opacity: [0, 1], duration: 800, easing: 'easeOutElastic(1, .5)' })
+    .add({ targets: '#splash-text', translateY: [20, 0], opacity: [0, 1], duration: 400, offset: '-=400' })
+    .add({ targets: '#splash-screen', opacity: [1, 0], duration: 500, delay: 1000, easing: 'easeInOutQuad' });
+});
+
+// Auth Role Selection
+document.querySelectorAll('.role-select-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.role-select-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        e.target.style.background = '#000';
+        e.target.style.color = '#fff';
+        document.querySelectorAll('.role-select-btn:not(.active)').forEach(b => {
+             b.style.background = '#f0f0f0';
+             b.style.color = '#333';
+        });
+    });
+});
+
+function triggerSignup(method) {
+    if(method === 'google') {
+        processAuthLogin(method, "Google User");
+    } else {
+        openAuthModal(method);
+    }
+}
+
+function openAuthModal(method) {
+    authMethod = method;
+    const modal = document.getElementById('auth-input-modal');
+    document.getElementById('auth-input-label').innerText = method === 'email' ? 'Enter Email Address' : 'Enter Phone Number';
+    document.getElementById('auth-contact-input').placeholder = method === 'email' ? 'name@example.com' : '+91 99999 99999';
+    modal.style.display = 'block';
+    anime({ targets: modal, opacity: [0, 1], translateY: [10, 0], duration: 300, easing: 'easeOutQuad' });
+}
+
+async function submitAuth() {
+    const contact = document.getElementById('auth-contact-input').value;
+    if(!contact) return alert("Please enter your details");
+    await processAuthLogin(authMethod, contact);
+}
+
+async function processAuthLogin(method, contact) {
+    const role = document.querySelector('.role-select-btn.active').getAttribute('data-role');
+    try {
+        const res = await fetch('/api/signup', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({method, contact, role})
+        });
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            localStorage.setItem('myAuto_role', role);
+            document.getElementById('auth-screen').style.display = 'none';
+            startApp();
+        }
+    } catch(e) { alert("Auth failed. Server running?"); }
+}
+
+// --- Profile Modals Logic ---
+document.querySelectorAll('.profile-entry').forEach(entry => {
+    entry.addEventListener('click', () => {
+        const targetId = entry.getAttribute('data-target');
+        const modal = document.getElementById(targetId);
+        modal.style.display = 'block';
+        anime({ targets: modal, opacity: [0, 1], scale: [0.95, 1], duration: 300, easing: 'easeOutQuart' });
+    });
+});
+document.querySelectorAll('.close-profile-modal').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const modal = e.target.closest('.full-screen-modal');
+        anime({
+            targets: modal, opacity: 0, scale: 0.95, duration: 250, easing: 'easeInQuart',
+            complete: () => { modal.style.display = 'none'; }
+        });
+    });
+});
+
+// Initialize Polling
+setInterval(() => {
+    if (document.getElementById('main-app').style.display === 'block') {
+         syncData();
+    }
+}, 5000);
+
+
