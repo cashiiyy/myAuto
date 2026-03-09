@@ -1,10 +1,23 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
+from typing import Optional
 import uuid
 import random
 
 app = FastAPI()
+
+# --- Request Models ---
+class SignupRequest(BaseModel):
+    method: str
+    contact: str
+    role: str
+
+class BookRequest(BaseModel):
+    auto_id: str
+    user_lat: float
+    user_lon: float
 
 # --- Mock Database ---
 class MockDB:
@@ -64,6 +77,26 @@ def get_data():
 def toggle_my_auto(status: str):
     db.autos[0]["status"] = status
     return {"status": "success", "new_status": status}
+
+@app.post("/api/signup")
+def signup(req: SignupRequest):
+    print(f"[AUTH] {req.role} signup via {req.method}: {req.contact}")
+    if req.method == "email":
+        print(f"  → Sent Welcome Email to {req.contact}")
+    elif req.method == "phone":
+        print(f"  → Sent Welcome SMS to {req.contact}")
+    else:
+        print(f"  → Google OAuth for {req.contact}")
+    return {"status": "success", "token": str(uuid.uuid4()), "role": req.role}
+
+@app.post("/api/book")
+def book_auto(req: BookRequest):
+    for auto in db.autos:
+        if auto["id"] == req.auto_id:
+            auto["status"] = "Booked"
+            print(f"[BOOKING] Auto {req.auto_id} booked by user at ({req.user_lat}, {req.user_lon})")
+            return {"status": "success", "auto_id": req.auto_id}
+    return {"status": "error", "message": "Auto not found"}
 
 # Serve static files as the main application
 app.mount("/static", StaticFiles(directory="k:/PROJECTS/auto/static"), name="static")

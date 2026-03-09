@@ -181,13 +181,8 @@ document.getElementById('close-modal').addEventListener('click', () => {
     });
 });
 
-// Role Toggle Button
-document.getElementById('driver-toggle-btn').addEventListener('click', () => {
-    currentMode = currentMode === 'Passenger' ? 'Driver' : 'Passenger';
-    document.getElementById('mode-text').innerText = currentMode + " Mode";
-    alert("Switched to " + currentMode + " Mode.");
-    syncData();
-});
+// Role Toggle (legacy - no longer in DOM, role selected at auth)
+// Removed: driver-toggle-btn no longer exists in DOM
 
 // Interactive Button Animations
 document.querySelectorAll('.interactive-btn').forEach(btn => {
