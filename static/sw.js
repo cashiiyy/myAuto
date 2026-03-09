@@ -1,4 +1,4 @@
-const CACHE_NAME = 'myauto-v1';
+const CACHE_NAME = 'myauto-v2';
 const urlsToCache = [
   '/',
   '/static/index.html',

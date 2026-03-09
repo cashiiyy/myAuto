@@ -126,7 +126,7 @@ def update_gps_locations():
 
 # --- Login/Role Selection Screen ---
 if st.session_state.role is None:
-    st.markdown("<div style='text-align: center; margin-top: 50px;'><h1 style='font-size: 3em;'>Namma Auto 🛺</h1><p style='color: #666; font-size: 1.2em;'>Your city, your ride. Transparent tracking for everyone.</p></div>", unsafe_allow_html=True)
+    st.markdown("<div style='text-align: center; margin-top: 50px;'><h1 style='font-size: 3em;'>myAuto 🛺</h1><p style='color: #666; font-size: 1.2em;'>Your city, your ride. Transparent tracking for everyone.</p></div>", unsafe_allow_html=True)
     st.write("---")
     
     col1, col2, col3, col4 = st.columns([1, 2, 2, 1])
@@ -202,7 +202,7 @@ def get_other_user_icon():
 
 # --- Sidebar / Overlay UI ---
 with st.sidebar:
-    st.markdown("### 🛺 Namma Auto")
+    st.markdown("### 🛺 myAuto")
     st.write(f"**Mode:** {st.session_state.role}")
     st.write("---")
     
