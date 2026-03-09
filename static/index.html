@@ -29,11 +29,11 @@
         <div id="bottom-sheet" class="bottom-sheet">
             <div class="drag-handle"></div>
             <h2 id="sheet-title">Namma Auto</h2>
-            <p id="sheet-desc">Select an auto or passenger on the map to see details.</p>
+            <p id="sheet-desc">Select an auto on the map to see details.</p>
             
             <div id="action-buttons" style="display: none; margin-top: 15px;">
-                <button class="btn btn-primary interactive-btn" id="call-btn"><i class="fas fa-phone"></i> Call Driver</button>
-                <button class="btn btn-danger interactive-btn" style="margin-top: 10px;"><i class="fas fa-exclamation-triangle"></i> SOS Alert</button>
+                <a href="#" class="btn btn-primary interactive-btn" id="call-btn" style="display:block; text-align:center; text-decoration:none; margin-bottom: 10px;"><i class="fas fa-phone"></i> Call Driver</a>
+                <button class="btn btn-success interactive-btn" id="book-btn" style="background-color: #10B981; color: white;"><i class="fas fa-check-circle"></i> Book Now</button>
             </div>
         </div>
         
@@ -47,21 +47,21 @@
             <h2>Recent Activity</h2>
         </div>
         <div class="list-container">
-            <div class="list-item interactive-card">
+            <div class="list-item interactive-card activity-entry">
                 <i class="fas fa-car list-icon"></i>
                 <div class="list-text">
                     <strong>Ride to MG Road</strong>
                     <span class="text-sm">Yesterday, 14:30 • ₹120</span>
                 </div>
             </div>
-            <div class="list-item interactive-card">
+            <div class="list-item interactive-card activity-entry">
                 <i class="fas fa-car list-icon"></i>
                 <div class="list-text">
                     <strong>Ride to Indiranagar</strong>
                     <span class="text-sm">Mar 5, 09:15 • ₹85</span>
                 </div>
             </div>
-            <div class="list-item interactive-card">
+            <div class="list-item interactive-card activity-entry">
                 <i class="fas fa-times-circle list-icon" style="color:red"></i>
                 <div class="list-text">
                     <strong>Cancelled Ride</strong>
@@ -77,11 +77,23 @@
             <h2>Profile Settings</h2>
         </div>
         <div class="profile-header">
-            <div class="avatar"><i class="fas fa-user"></i></div>
+            <div class="avatar"><i class="fas fa-user-circle"></i></div>
             <h3>User Profile</h3>
-            <p>Passenger Mode</p>
+            <p id="mode-text">Passenger Mode</p>
         </div>
         <div class="list-container" style="margin-top:20px;">
+            <div class="list-item interactive-card">
+                <i class="fas fa-info-circle list-icon"></i>
+                <div class="list-text"><strong>Personal Details</strong></div>
+            </div>
+            <div class="list-item interactive-card">
+                <i class="fas fa-tags list-icon"></i>
+                <div class="list-text"><strong>Offers & Promos</strong></div>
+            </div>
+            <div class="list-item interactive-card">
+                <i class="fas fa-headset list-icon"></i>
+                <div class="list-text"><strong>Customer Support</strong></div>
+            </div>
             <div class="list-item interactive-card">
                 <i class="fas fa-shield-alt list-icon"></i>
                 <div class="list-text"><strong>Safety Contacts</strong></div>
@@ -90,6 +102,34 @@
                 <i class="fas fa-exchange-alt list-icon"></i>
                 <div class="list-text"><strong>Switch to Driver Mode</strong></div>
             </div>
+        </div>
+    </div>
+
+    <!-- Full Screen Activity Popup -->
+    <div id="activity-modal" class="full-screen-modal">
+        <div class="modal-header">
+            <button id="close-modal" class="icon-btn interactive-btn"><i class="fas fa-times"></i></button>
+            <h3>Ride Details</h3>
+        </div>
+        <div class="modal-body" style="padding: 20px;">
+            <div style="background: #f0f0f0; border-radius: 10px; height: 150px; margin-bottom: 20px; display:flex; justify-content:center; align-items:center;">[Map Snapshot]</div>
+            <h4>Driver: Kumar V.</h4>
+            <p><strong>Auto:</strong> KA-01-AB-1234</p>
+            <p><strong>Fare:</strong> ₹120.00</p>
+            <hr style="margin: 20px 0;">
+            <p style="color: #666;">Pickup: HSR Layout Sector 2</p>
+            <p style="color: #666;">Drop: MG Road Metro</p>
+        </div>
+    </div>
+
+    <!-- Driver Notification Popup -->
+    <div id="driver-alert" class="driver-alert hidden">
+        <div class="alert-content">
+            <i class="fas fa-bell fa-2x" style="color: #10B981; margin-bottom:10px;"></i>
+            <h3>New Booking!</h3>
+            <p>A passenger has booked your auto.</p>
+            <p><strong>Reach the customer location ASAP.</strong></p>
+            <button class="btn btn-primary interactive-btn" id="accept-booking-btn" style="margin-top: 15px;">Acknowledge</button>
         </div>
     </div>
 

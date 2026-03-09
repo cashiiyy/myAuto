@@ -2,17 +2,15 @@
 let map;
 let markers = {};
 let currentMode = 'Passenger'; // Default
+let myRealLocation = [12.9716, 77.5946];
+let watchId = null;
 
 // Initialize Map
 function initMap(center) {
-    map = L.map('map', {
-        zoomControl: false // Minimalist UI
-    }).setView(center, 15);
-
-    // Google Maps Tiles
+    if (map) return;
+    map = L.map('map', {zoomControl: false}).setView(center, 15);
     L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-        attribution: 'Google',
-        maxZoom: 20
+        attribution: 'Google', maxZoom: 20
     }).addTo(map);
 }
 
@@ -20,175 +18,209 @@ function initMap(center) {
 const createIcon = (color, emoji) => L.divIcon({
     className: 'custom-marker',
     html: `<div style="background:${color}; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;">${emoji}</div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16]
+    iconSize: [32, 32], iconAnchor: [16, 16]
 });
 
 const icons = {
-    'Passenger': createIcon('#3B82F6', '👤'),
     'Vacant': createIcon('#10B981', '🛺'),
     'On Ride': createIcon('#EF4444', '🛺'),
+    'Booked': createIcon('#F59E0B', '🚨'),
     'Me': createIcon('#000000', '📍')
 };
+
+// Real GPS Tracking Initialization
+function startRealGPSTracking() {
+    if ("geolocation" in navigator) {
+        watchId = navigator.geolocation.watchPosition((position) => {
+            myRealLocation = [position.coords.latitude, position.coords.longitude];
+            if (map && markers['me']) {
+                markers['me'].setLatLng(myRealLocation);
+                map.panTo(myRealLocation);
+            }
+        }, (error) => {
+            console.warn("GPS Access Denied or Unavailable. Using Mock location.");
+        }, { enableHighAccuracy: true });
+    }
+}
 
 // Fetch Data & Update Map
 async function syncData() {
     try {
-        // Animate Sync Button
-        anime({
-            targets: '#sync-fab i',
-            rotate: '+=360',
-            duration: 800,
-            easing: 'easeInOutSine'
-        });
+        anime({targets: '#sync-fab i', rotate: '+=360', duration: 800, easing: 'easeInOutSine'});
 
         const res = await fetch('/api/data');
         const data = await res.json();
         
-        if (!map) initMap(data.center);
+        if (!map) initMap(myRealLocation);
         
-        // Clear old markers (for simplicity in MVP, normally we'd update positions)
-        Object.values(markers).forEach(m => map.removeLayer(m));
-        markers = {};
-
-        // Draw My Location
-        markers['me'] = L.marker(data.center, {icon: icons['Me']}).addTo(map);
-
-        // Draw Passengers
-        data.passengers.forEach(p => {
-            const m = L.marker([p.lat, p.lon], {icon: icons['Passenger']}).addTo(map);
-            m.on('click', () => showBottomSheet('Passenger', p));
-            markers[p.id] = m;
+        Object.values(markers).forEach(m => {
+            if (m !== markers['me']) map.removeLayer(m);
         });
+        
+        // Ensure my marker exists
+        if (!markers['me']) {
+            markers['me'] = L.marker(myRealLocation, {icon: icons['Me']}).addTo(map);
+        }
 
-        // Draw Autos
+        let amIBooked = false;
+
+        // Draw Autos (Passengers removed as requested)
         data.autos.forEach(a => {
-            const m = L.marker([a.lat, a.lon], {icon: icons[a.status]}).addTo(map);
-            m.on('click', () => showBottomSheet('Auto', a));
+            // Check if I am the driver and I got booked
+            if (currentMode === 'Driver' && a.id === 'MY-AUTO' && a.status === 'Booked') {
+                amIBooked = true;
+            }
+
+            // Only plot if keeping simple. Don't show non-vacant for customers
+            if (currentMode === 'Passenger' && a.status !== 'Vacant') return; // Hide non-vacants
+            
+            // Draw driver auto
+            const m = L.marker([a.lat, a.lon], {icon: icons[a.status] || icons['Vacant']}).addTo(map);
+            m.on('click', () => {
+                if (currentMode === 'Passenger' && a.status === 'Vacant') {
+                    showBottomSheet('Auto', a);
+                }
+            });
             markers[a.id] = m;
         });
 
-        // Entrance Animation for Map Markers (Anime.js)
-        setTimeout(() => {
-            const markerEls = document.querySelectorAll('.custom-marker div');
+        // Driver Notification Overlay
+        const driverAlert = document.getElementById('driver-alert');
+        if (amIBooked && driverAlert.classList.contains('hidden')) {
+            driverAlert.classList.remove('hidden');
             anime({
-                targets: markerEls,
-                scale: [0, 1],
+                targets: '.alert-content',
+                scale: [0.8, 1],
                 opacity: [0, 1],
-                delay: anime.stagger(20),
-                duration: 600,
+                duration: 500,
                 easing: 'easeOutElastic(1, .5)'
             });
-        }, 100);
+        }
 
-    } catch (e) {
-        console.error("Failed to sync data", e);
-    }
+    } catch (e) { console.error("Sync Failed", e); }
 }
 
-// Bottom Sheet / Overlay Logic
+// Bottom Sheet / Booking Logic
 let sheetVisible = false;
+let selectedAutoId = null;
+
 function showBottomSheet(type, data) {
     const sheetTitle = document.getElementById('sheet-title');
     const sheetDesc = document.getElementById('sheet-desc');
     const actBtns = document.getElementById('action-buttons');
     const callBtn = document.getElementById('call-btn');
 
-    if (type === 'Auto') {
-        sheetTitle.innerHTML = `Auto ${data.id} <span style="font-size:12px; color:${data.status==='Vacant'?'#10B981':'#EF4444'}">• ${data.status}</span>`;
-        sheetDesc.innerHTML = `<b>Driver:</b> ${data.driver} <br> <b>Rating:</b> ⭐ ${data.rating}`;
-        if (data.status === 'Vacant') {
-            callBtn.innerHTML = `<i class="fas fa-phone"></i> Call ${data.phone}`;
-            actBtns.style.display = 'block';
-        } else {
-            actBtns.style.display = 'none';
-        }
-    } else {
-        sheetTitle.innerText = `Passenger ${data.id}`;
-        sheetDesc.innerText = data.status;
-        actBtns.style.display = 'none';
-    }
+    selectedAutoId = data.id;
+    sheetTitle.innerHTML = `Auto ${data.id} <span style="font-size:12px; color:#10B981">• ${data.status}</span>`;
+    sheetDesc.innerHTML = `<b>Driver:</b> ${data.driver} <br> <b>Rating:</b> ⭐ ${data.rating}`;
+    
+    // Setup Call Link
+    callBtn.href = `tel:${data.phone.replace(/\s+/g, '')}`;
+    actBtns.style.display = 'block';
 
-    // Anime.js Bottom Sheet Slide Up
-    anime({
-        targets: '#bottom-sheet',
-        translateY: ['100%', '0%'],
-        duration: 400,
-        easing: 'easeOutExpo'
-    });
+    anime({targets: '#bottom-sheet', translateY: ['120%', '0%'], duration: 400, easing: 'easeOutExpo'});
     sheetVisible = true;
 }
+
+// Book Now Action
+document.getElementById('book-btn').addEventListener('click', async () => {
+    if (!selectedAutoId) return;
+    try {
+        await fetch('/api/book', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({auto_id: selectedAutoId, user_lat: myRealLocation[0], user_lon: myRealLocation[1]})
+        });
+        alert("Booking Confirmed! The driver has been notified.");
+        
+        anime({targets: '#bottom-sheet', translateY: '120%', duration: 300, easing: 'easeInSine'});
+        sheetVisible = false;
+        syncData(); // Refresh immediately to hide the auto
+    } catch (e) { alert("Failed to book."); }
+});
+
+// Acknowledge Booking (Driver)
+document.getElementById('accept-booking-btn').addEventListener('click', async () => {
+    await fetch('/api/toggle?status=On Ride', {method: 'POST'});
+    document.getElementById('driver-alert').classList.add('hidden');
+    syncData();
+});
 
 // Hide sheet if map clicked
 document.getElementById('map').addEventListener('click', () => {
     if (sheetVisible) {
-        anime({
-            targets: '#bottom-sheet',
-            translateY: '100%',
-            duration: 300,
-            easing: 'easeInSine'
-        });
+        anime({targets: '#bottom-sheet', translateY: '120%', duration: 300, easing: 'easeInSine'});
         sheetVisible = false;
     }
 });
 
-// Interactive Button Clicks (Anime.js)
-document.querySelectorAll('.interactive-btn').forEach(btn => {
-    btn.addEventListener('touchstart', () => {
-        anime({ targets: btn, scale: 0.95, duration: 100, easing: 'easeOutQuad' });
-    });
-    btn.addEventListener('touchend', () => {
-        anime({ targets: btn, scale: 1, duration: 200, easing: 'easeOutElastic(1, .5)' });
-    });
-    // For Desktop testing
-    btn.addEventListener('mousedown', () => {
-        anime({ targets: btn, scale: 0.95, duration: 100, easing: 'easeOutQuad' });
-    });
-    btn.addEventListener('mouseup', () => {
-        anime({ targets: btn, scale: 1, duration: 200, easing: 'easeOutElastic(1, .5)' });
+// Full Screen Activity Modal Interactions
+document.querySelectorAll('.activity-entry').forEach(entry => {
+    entry.addEventListener('click', () => {
+        const modal = document.getElementById('activity-modal');
+        modal.style.display = 'block';
+        anime({
+            targets: modal,
+            opacity: [0, 1],
+            scale: [0.95, 1],
+            duration: 300,
+            easing: 'easeOutQuart'
+        });
     });
 });
 
-// Tab Navigation Logic with Animations
+document.getElementById('close-modal').addEventListener('click', () => {
+    const modal = document.getElementById('activity-modal');
+    anime({
+        targets: modal,
+        opacity: 0,
+        scale: 0.95,
+        duration: 250,
+        easing: 'easeInQuart',
+        complete: () => { modal.style.display = 'none'; }
+    });
+});
+
+// Role Toggle Button
+document.getElementById('driver-toggle-btn').addEventListener('click', () => {
+    currentMode = currentMode === 'Passenger' ? 'Driver' : 'Passenger';
+    document.getElementById('mode-text').innerText = currentMode + " Mode";
+    alert("Switched to " + currentMode + " Mode.");
+    syncData();
+});
+
+// Interactive Button Animations
+document.querySelectorAll('.interactive-btn').forEach(btn => {
+    btn.addEventListener('touchstart', () => anime({targets: btn, scale: 0.95, duration: 100}));
+    btn.addEventListener('touchend', () => anime({targets: btn, scale: 1, duration: 200}));
+    btn.addEventListener('mousedown', () => anime({targets: btn, scale: 0.95, duration: 100}));
+    btn.addEventListener('mouseup', () => anime({targets: btn, scale: 1, duration: 200}));
+});
+
+// Tabs Logic
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', function() {
-        // Reset active state
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         this.classList.add('active');
 
         const targetId = this.getAttribute('data-target');
-        
-        // Hide all tabs
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.style.display = 'none';
             tab.classList.remove('active');
         });
 
-        // Show targets with Anime.js Fade/Slide
         const newTab = document.getElementById(targetId);
         newTab.style.display = 'block';
         newTab.classList.add('active');
 
-        anime({
-            targets: newTab,
-            opacity: [0, 1],
-            translateY: [10, 0],
-            duration: 400,
-            easing: 'easeOutQuart'
-        });
+        anime({targets: newTab, opacity: [0, 1], translateY: [10, 0], duration: 400});
 
-        // Trigger map resize issue fix due to display:none
-        if (targetId === 'tab-map' && map) {
-            setTimeout(() => map.invalidateSize(), 100);
-        }
+        if (targetId === 'tab-map' && map) setTimeout(() => map.invalidateSize(), 100);
     });
 });
 
 // Initialize
 document.getElementById('sync-fab').addEventListener('click', syncData);
-
-// Initially load map
+startRealGPSTracking();
 syncData();
-
-// Poll every 5s for tracking
 setInterval(syncData, 5000);

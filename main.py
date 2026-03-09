@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-import numpy as np
-import pandas as pd
 import uuid
 import random
 
@@ -15,8 +13,8 @@ class MockDB:
         
         # Passengers
         num_pass = 15
-        p_lats = self.base_loc[0] + np.random.normal(0, 0.02, num_pass)
-        p_lons = self.base_loc[1] + np.random.normal(0, 0.02, num_pass)
+        p_lats = [self.base_loc[0] + random.gauss(0, 0.02) for _ in range(num_pass)]
+        p_lons = [self.base_loc[1] + random.gauss(0, 0.02) for _ in range(num_pass)]
         self.passengers = [{
             "id": str(uuid.uuid4())[:8],
             "lat": float(lat),
@@ -26,8 +24,8 @@ class MockDB:
         
         # Autos
         num_autos = 20
-        a_lats = self.base_loc[0] + np.random.normal(0, 0.02, num_autos)
-        a_lons = self.base_loc[1] + np.random.normal(0, 0.02, num_autos)
+        a_lats = [self.base_loc[0] + random.gauss(0, 0.02) for _ in range(num_autos)]
+        a_lons = [self.base_loc[1] + random.gauss(0, 0.02) for _ in range(num_autos)]
         self.autos = [{
             "id": f"KA-{random.randint(10,99)}-{random.randint(1000,9999)}",
             "lat": float(lat),
@@ -44,11 +42,11 @@ class MockDB:
     def step(self):
         # Simulate slight movement
         for p in self.passengers:
-            p["lat"] += float(np.random.normal(0, 0.0001))
-            p["lon"] += float(np.random.normal(0, 0.0001))
+            p["lat"] += random.gauss(0, 0.0001)
+            p["lon"] += random.gauss(0, 0.0001)
         for a in self.autos:
-            a["lat"] += float(np.random.normal(0, 0.0005))
-            a["lon"] += float(np.random.normal(0, 0.0005))
+            a["lat"] += random.gauss(0, 0.0005)
+            a["lon"] += random.gauss(0, 0.0005)
 
 db = MockDB()
 
