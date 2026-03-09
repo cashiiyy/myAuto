@@ -8,6 +8,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -38,6 +39,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Modern way to handle back button
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (myWebView.canGoBack()) {
+                    myWebView.goBack();
+                } else {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
+
         // Request Location Permissions
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
@@ -47,9 +61,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadApp() {
-        // Change to your deployed URL when pushing to production. 
-        // 10.0.2.2 is localhost for Android Emulators
-        myWebView.loadUrl("http://10.0.2.2:8000"); 
+        // Load the local index.html from the assets folder for a standalone app feel
+        myWebView.loadUrl("file:///android_asset/index.html"); 
     }
 
     @Override
@@ -57,15 +70,6 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             loadApp(); // Load anyway, map will fallback
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (myWebView.canGoBack()) {
-            myWebView.goBack();
-        } else {
-            super.onBackPressed();
         }
     }
 }
